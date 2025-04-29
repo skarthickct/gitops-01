@@ -19,20 +19,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # Debugging node/npm versions
-      - run: node -v
-      - run: npm -v
-
+      # Skip Debugging node/npm versions to save time
       # Clean npm cache before install (if necessary)
       - run: npm cache clean --force
 
-      # Install Dependencies (Use npm ci for faster and more reliable installs)
+      # Install Dependencies (Use npm install for faster installs)
       - name: Install Dependencies
-        run: npm install --verbose  # Faster and more consistent than npm install
-
-      # Build Project
-      - name: Build Project
-        run: npm run build --if-present
+        run: npm install --verbose  # Using npm install instead of npm ci
 
       # Cache node_modules and npm
       - name: Cache node_modules and npm
@@ -45,11 +38,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Set Nexus npm registry
-      - name: Set Nexus npm registry
-        run: |
-          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
-          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+      # Build Project
+      - name: Build Project
+        run: npm run build --if-present
 
   test-stage:
     runs-on: ubuntu-latest
