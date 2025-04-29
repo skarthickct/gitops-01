@@ -72,7 +72,7 @@ jobs:
         with:
           context: ./
           tags: |
-            skarthickct/gitops-01:${{ github.sha }} 
+            karthickct/gitops-01:${{ github.sha }} 
             ghcr.io/skarthickct/gitops-01:${{ github.sha }}
           push: ${{ github.ref == 'refs/heads/master' }}
 
