@@ -45,7 +45,7 @@ jobs:
       - name: Set Nexus npm registry
         run: |
           echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
-          echo "//${{ secrets.NPM_REGISTRY#*// }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
 
 
   test-stage:
