@@ -25,7 +25,7 @@ jobs:
 
       # Install Dependencies (Use npm install for faster installs)
       - name: Install Dependencies
-        run: npm install --verbose  # Using npm install instead of npm ci
+        run: npm ci --no-audit
 
       # Cache node_modules and npm
       - name: Cache node_modules and npm
