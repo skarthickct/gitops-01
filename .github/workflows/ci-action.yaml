@@ -23,16 +23,18 @@ jobs:
       - run: node -v
       - run: npm -v
 
-      # Clean npm cache before install
+      # Clean npm cache before install (if necessary)
       - run: npm cache clean --force
 
-      # Install dependencies using npm install
+      # Install Dependencies (Use npm ci for faster and more reliable installs)
       - name: Install Dependencies
-        run: npm install --verbose
+        run: npm ci --verbose  # Faster and more consistent than npm install
 
+      # Build Project
       - name: Build Project
         run: npm run build --if-present
 
+      # Cache node_modules and npm
       - name: Cache node_modules and npm
         uses: actions/cache@v3
         with:
@@ -42,11 +44,12 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      # Set Nexus npm registry
       - name: Set Nexus npm registry
         run: |
           echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
           echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
-
 
   test-stage:
     runs-on: ubuntu-latest
