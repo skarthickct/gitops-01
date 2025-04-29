@@ -88,14 +88,18 @@ jobs:
           git config --global user.email "karthick@cloudthat.com"
           git config --global user.name "skarthickct"
           echo ${{ github.sha }}
-      - name: Check for changes
+      - name: Check current deployment.yaml contents
+        run: cat deployment.yaml
+      - name: Run sed to replace image
+        run: |
+          sed -i "s#skarthickct.*#skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
+      - name: Check if file was modified
         id: check_changes
         run: |
           git diff --exit-code || echo "Changes detected"
       - name: Commit and push changes if any
-        if: steps.check_changes.outcome == 'success'
+        if: steps.check_changes.outputs.exit_code != '0'
         run: |
-          sed -i "s#${{ github.actor }}.*#${{ github.actor }}/gitops-01:${{ github.sha }}#g" deployment.yaml
           git add -A
-          git commit -am "Update image for - ${{ github.sha }}"
+          git commit -m "Update image for - ${{ github.sha }}"
           git push origin master
