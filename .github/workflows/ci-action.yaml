@@ -28,7 +28,7 @@ jobs:
 
       # Install Dependencies (Use npm ci for faster and more reliable installs)
       - name: Install Dependencies
-        run: npm ci --verbose  # Faster and more consistent than npm install
+        run: npm install --verbose  # Faster and more consistent than npm install
 
       # Build Project
       - name: Build Project
