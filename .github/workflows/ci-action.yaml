@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         node-version: [14.20.0]
+
     steps:
       - uses: actions/checkout@v3
 
@@ -18,6 +19,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
+      - name: Set Nexus npm registry
+        run: |
+          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
+          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
 
       - name: Install Dependencies
         run: npm install --verbose
@@ -35,17 +41,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Set Nexus npm registry
-        run: |
-          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
-          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
-
   test-stage:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Checkout Code for Tests
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+
       - name: Run Tests
         run: echo "Running tests"
 
@@ -54,11 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, test-stage]
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Docker Hub Login
@@ -82,7 +81,7 @@ jobs:
           tags: |
             karthickct/gitops-01:${{ github.sha }}
             ghcr.io/skarthickct/gitops-01:${{ github.sha }}
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: true
           cache-from: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest
 
       - name: Output Image Digest
@@ -90,35 +89,35 @@ jobs:
 
   update-manifest-stage:
     runs-on: ubuntu-latest
-    needs: [build-and-push-docker-image]
+    needs: build-and-push-docker-image
+
     steps:
       - uses: actions/checkout@v3
         with:
           repository: skarthickct/gitops-infra
-          ref: 'master'
+          ref: master
           token: ${{ secrets.G_TOKEN }}
 
-      - name: Setup git config
+      - name: Setup Git
         run: |
           git config --global user.email "karthick@cloudthat.com"
           git config --global user.name "skarthickct"
-          echo ${{ github.sha }}
 
-      - name: Check current deployment.yaml contents
+      - name: Check current deployment.yaml
         run: cat deployment.yaml
 
-      - name: Update Image in Deployment YAML
+      - name: Update image in deployment.yaml
         run: |
-          sed -i "s#skarthickct.*#skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
+          sed -i "s#skarthickct/gitops-01:.*#skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
 
-      - name: Check for Changes in deployment.yaml
+      - name: Check for changes
         id: check_changes
         run: |
-          git diff --exit-code || echo "Changes detected"
+          git diff --quiet deployment.yaml || echo "changed=true" >> $GITHUB_OUTPUT
 
-      - name: Commit and Push Changes if Any
-        if: steps.check_changes.outputs.exit_code != '0'
+      - name: Commit and Push if changed
+        if: steps.check_changes.outputs.changed == 'true'
         run: |
-          git add -A
-          git commit -m "Update image for - ${{ github.sha }}"
+          git add deployment.yaml
+          git commit -m "Update image for ${{ github.sha }}"
           git push origin master
