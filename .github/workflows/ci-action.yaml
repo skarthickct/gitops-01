@@ -29,11 +29,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-   
       - name: Install Dependencies
         run: npm install --verbose  
 
-    
       - name: Build Project
         run: npm run build --if-present
 
@@ -44,8 +42,7 @@ jobs:
       - name: Checkout Code for Tests
         uses: actions/checkout@v3
       - name: Run Tests
-        run: |
-          echo "Running tests"
+        run: echo "Running tests"
 
   build-and-push-docker-image:
     name: Build Docker Image and Push to Repositories
@@ -73,17 +70,18 @@ jobs:
           password: ${{ secrets.G_TOKEN }}
 
       - name: Build and Push Docker Image
+        id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./ 
-          tags: |
-            karthickct/gitops-01:${{ github.sha }} 
-            ghcr.io/skarthickct/gitops-01:${{ github.sha }}
+          context: ./
           push: ${{ github.ref == 'refs/heads/master' }}
+          tags: |
+            karthickct/gitops-01:${{ github.sha }}
+            ghcr.io/skarthickct/gitops-01:${{ github.sha }}
           cache-from: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest
 
       - name: Output Image Digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: echo "Digest: ${{ steps.docker_build.outputs.digest }}"
 
   update-manifest-stage:
     runs-on: ubuntu-latest
@@ -94,23 +92,28 @@ jobs:
           repository: skarthickct/gitops-infra
           ref: 'master'
           token: ${{ secrets.G_TOKEN }}
+
       - name: Setup git config
         run: |
           git config --global user.email "karthick@cloudthat.com"
           git config --global user.name "skarthickct"
-          echo ${{ github.sha }}
+          echo "Git SHA: ${{ github.sha }}"
+
       - name: Check current deployment.yaml contents
         run: cat deployment.yaml
+
       - name: Update Image in Deployment YAML
         run: |
-          sed -i "s#skarthickct.*#skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
+          sed -i "s#image: .*#image: skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
+
       - name: Check for Changes in deployment.yaml
         id: check_changes
         run: |
-          git diff --exit-code || echo "Changes detected"
+          git diff --quiet || echo "changes=true" >> $GITHUB_OUTPUT
+
       - name: Commit and Push Changes if Any
-        if: steps.check_changes.outputs.exit_code != '0'
+        if: steps.check_changes.outputs.changes == 'true'
         run: |
-          git add -A
+          git add deployment.yaml
           git commit -m "Update image for - ${{ github.sha }}"
           git push origin master
