@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+         # Set Nexus npm registry
+      - name: Set Nexus npm registry
+        run: |
+          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
+          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -38,11 +44,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Set Nexus npm registry
-      - name: Set Nexus npm registry
-        run: |
-          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
-          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+   
 
   test-stage:
     runs-on: ubuntu-latest
