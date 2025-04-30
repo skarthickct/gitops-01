@@ -29,6 +29,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Set Nexus npm registry
+        run: |
+          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
+          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
+
    
       - name: Install Dependencies
         run: npm install --verbose  
@@ -36,12 +41,6 @@ jobs:
     
       - name: Build Project
         run: npm run build --if-present
-
-      
-      - name: Set Nexus npm registry
-        run: |
-          echo "registry=${{ secrets.NPM_REGISTRY }}" > .npmrc
-          echo "//${{ secrets.NPM_REGISTRY }}:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> .npmrc
 
   test-stage:
     runs-on: ubuntu-latest
