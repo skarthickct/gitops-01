@@ -26,13 +26,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/package.json') }}  # Include both pnpm-lock and package.json
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
             ${{ runner.os }}-pnpm-
 
       - name: Install Dependencies with pnpm
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Build Project
         run: pnpm run build
@@ -74,13 +73,12 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v2
         with:
-          context: ./  # Path to Docker context
+          context: ./
           tags: |
             karthickct/gitops-01:${{ github.sha }}
             ghcr.io/skarthickct/gitops-01:${{ github.sha }}
-          push: ${{ github.ref == 'refs/heads/master' }}  # Push only on master branch
-          cache-from: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest  # Use the cache from previous builds
-          cache-to: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest,mode=max  # Cache the result of the build
+          push: ${{ github.ref == 'refs/heads/master' }}
+          cache-from: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest
 
       - name: Output Image Digest
         run: echo ${{ steps.docker_build.outputs.digest }}
