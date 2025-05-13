@@ -73,7 +73,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v2
         with:
-          context: ./
+          context: ./ 
           tags: |
             karthickct/gitops-01:${{ github.sha }}
             ghcr.io/skarthickct/gitops-01:${{ github.sha }}
@@ -115,4 +115,6 @@ jobs:
         run: |
           git add deployment.yaml
           git commit -m "Update image to ghcr.io/skarthickct/gitops-01:${{ github.sha }}"
+
+          # Ensure to specify the correct branch and push to origin
           git push origin master
