@@ -19,16 +19,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # Debugging node/npm versions
-      - run: node -v
-      - run: npm -v
-
-      # Clean npm cache before install (if necessary)
-      - run: npm cache clean --force
-
-      # Install Dependencies (Use npm ci for faster and more reliable installs)
+      # Install Dependencies
       - name: Install Dependencies
-        run: npm ci --verbose  # Faster and more consistent than npm install
+        run: npm install --verbose  
 
       # Build Project
       - name: Build Project
