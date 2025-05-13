@@ -25,10 +25,11 @@ jobs:
       - name: Cache pnpm store
         uses: actions/cache@v3
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.pnpm-store  # Path to pnpm store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/package.json') }}  # Cache key includes pnpm-lock.yaml and package.json
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}  # Fallback key using pnpm-lock.yaml
+            ${{ runner.os }}-pnpm-${{ runner.os }}  # Further fallback using the runner OS
 
       - name: Install Dependencies with pnpm
         run: pnpm install --frozen-lockfile
@@ -115,6 +116,4 @@ jobs:
         run: |
           git add deployment.yaml
           git commit -m "Update image to ghcr.io/skarthickct/gitops-01:${{ github.sha }}"
-
-          # Ensure to specify the correct branch and push to origin
           git push origin master
