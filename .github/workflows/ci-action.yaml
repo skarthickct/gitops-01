@@ -88,4 +88,21 @@ jobs:
 
       - name: Setup git config
         run: |
-          git config --global user.email "karth
+          git config --global user.email "karthick@cloudthat.com"
+          git config --global user.name "skarthickct"
+
+      - name: Update Image in Deployment YAML
+        run: |
+          sed -i "s#image: .*#image: ghcr.io/skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
+
+      - name: Check for Changes in deployment.yaml
+        id: check_changes
+        run: |
+          git diff --quiet || echo "changes_detected=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and Push Changes if Any
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          git add deployment.yaml
+          git commit -m "Update image to ghcr.io/skarthickct/gitops-01:${{ github.sha }}"
+          git push origin master
