@@ -7,36 +7,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
 
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Cache pnpm and node_modules
+      - name: Cache pnpm store
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      - name: Install Dependencies with pnpm
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Project
-        run: pnpm run build
+      - name: Install & Build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
 
   build-and-push-docker-image:
     name: Build Docker Image and Push to GHCR
@@ -59,10 +53,9 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v2
         with:
-          context: ./ 
+          context: ./
           push: ${{ github.ref == 'refs/heads/master' }}
-          tags: |
-            ghcr.io/skarthickct/gitops-01:${{ github.sha }}
+          tags: ghcr.io/skarthickct/gitops-01:${{ github.sha }}
           cache-from: type=registry,ref=ghcr.io/skarthickct/gitops-01:latest
           cache-to: type=inline
 
@@ -72,27 +65,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: skarthickct/gitops-infra
-          ref: 'master'
-          token: ${{ secrets.G_TOKEN }}
-
-      - name: Setup git config
-        run: |
-          git config --global user.email "karthick@cloudthat.com"
-          git config --global user.name "skarthickct"
-
-      - name: Update Image in Deployment YAML
-        run: |
-          sed -i "s#image: .*#image: ghcr.io/skarthickct/gitops-01:${{ github.sha }}#g" deployment.yaml
-
-      - name: Check for Changes in deployment.yaml
-        id: check_changes
-        run: |
-          git diff --quiet || echo "changes_detected=true" >> $GITHUB_OUTPUT
-
-      - name: Commit and Push Changes if Any
-        if: steps.check_changes.outputs.changes_detected == 'true'
-        run: |
-          git add deployment.yaml
-          git commit -m "Update image to ghcr.io/skarthickct/gitops-01:${{ github.sha }}"
-          git push origin master
+          repository: skarth
