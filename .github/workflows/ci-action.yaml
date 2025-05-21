@@ -95,4 +95,4 @@ jobs:
         run: |
           git add deployment.yaml
           git commit -m "Update image to ghcr.io/skarthickct/gitops-01:${{ github.sha }}"
-          git push origin master
+          git push origin master 
