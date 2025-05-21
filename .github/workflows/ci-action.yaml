@@ -38,7 +38,9 @@ jobs:
             ${{ runner.os }}-pnpm-
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline --ignore-workspace-root-check
+        env:
+          PNPM_ENABLE_WORKSPACE_ROOT_CHECK: 'false'
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build Project
         run: pnpm run build
