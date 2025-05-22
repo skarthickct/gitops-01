@@ -32,6 +32,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
+      
+      - name: Set up .npmrc for Nexus
+        run: |
+          echo "//${{ secrets.NEXUS_URL#*// }}:_auth=$(echo -n '${{ secrets.NEXUS_USERNAME }}:${{ secrets.NEXUS_PASSWORD }}' | base64)" > .npmrc
+          echo "registry=${{ secrets.NEXUS_URL }}" >> .npmrc
+
       - name: Install Dependencies with pnpm
         run: pnpm install --frozen-lockfile
 
