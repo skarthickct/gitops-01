@@ -39,7 +39,7 @@ jobs:
           echo "registry=${{ secrets.NEXUS_URL }}" >> .npmrc
 
       - name: Install Dependencies with pnpm
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build Project
         run: pnpm run build
