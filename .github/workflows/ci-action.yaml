@@ -22,7 +22,7 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Cache pnpm store and node_modules
+      - name: Cache pnpm and node_modules
         uses: actions/cache@v3
         with:
           path: |
@@ -32,17 +32,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      - name: Set up .npmrc for Nexus with auth
+      - name: Set up .npmrc for Nexus
         run: |
           NEXUS_HOST=$(echo "${{ secrets.NEXUS_URL }}" | sed -e 's#^https\?://##')
           echo "//${NEXUS_HOST}/:_auth=$(echo -n '${{ secrets.NEXUS_USERNAME }}:${{ secrets.NEXUS_PASSWORD }}' | base64)" > ~/.npmrc
           echo "//${NEXUS_HOST}/:always-auth=true" >> ~/.npmrc
           echo "registry=${{ secrets.NEXUS_URL }}" >> ~/.npmrc
 
-      - name: Verify pnpm registry config
-        run: pnpm config get registry
+      - name: Clear pnpm cache and node_modules for Nexus testing
+        run: |
+          rm -rf node_modules
+          rm -rf ~/.pnpm-store
 
-      - name: Install Dependencies with pnpm (Nexus) with verbose logs
+      - name: Install Dependencies with pnpm (Nexus)
         run: pnpm install --registry=${{ secrets.NEXUS_URL }} --verbose
 
       - name: Build Project
