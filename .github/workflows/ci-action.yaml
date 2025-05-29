@@ -18,16 +18,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          registry-url: http://your-nexus-host/repository/npm-all/
+          registry-url: http://127.0.0.1:8080/repository/npm-all/
 
       - name: Setup .npmrc for Nexus
         run: |
-          echo "//your-nexus-host/repository/npm-all/:_auth=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
-          echo "//your-nexus-host/repository/npm-all/:always-auth=true" >> ~/.npmrc
-          echo "registry=http://your-nexus-host/repository/npm-all/" >> ~/.npmrc
+          echo "//127.0.0.1:8080/repository/npm-all/:_auth=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
+          echo "//127.0.0.1:8080/repository/npm-all/:always-auth=true" >> ~/.npmrc
+          echo "registry=http://127.0.0.1:8080/repository/npm-all/" >> ~/.npmrc
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Install pnpm (use setup action instead of npm install -g)
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       - name: Cache pnpm store
         uses: actions/cache@v3
