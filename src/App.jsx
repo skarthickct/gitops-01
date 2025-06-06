@@ -27,6 +27,7 @@ function App() {
       </div>
       <p className="read-the-docs">
         Click on the Vite and React - JavaScript
+        From Code to Kubernetes: Automating GitOps Deployments with GitHub Actions
       </p>
     </>
   )
