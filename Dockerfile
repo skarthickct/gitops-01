@@ -4,10 +4,10 @@ FROM node:18-alpine as build-step
 WORKDIR /app
 
 COPY package*.json ./
-RUN pnpm install
+RUN npm install
 
 COPY . .
-RUN pnpm run build
+RUN npm run build
 
 # Production stage
 FROM nginx:1.23-alpine
